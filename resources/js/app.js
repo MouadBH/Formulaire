@@ -15,10 +15,11 @@ require('./bootstrap');
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import $ from "jquery";
+import moment from 'moment'
+import Loader from './loader'
 import DateFnsUtils from "@date-io/date-fns";
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
-import CircularProgress from '@material-ui/core/CircularProgress';
 import Rating from '@material-ui/lab/Rating';
 import { makeStyles } from '@material-ui/core/styles';
 import {
@@ -27,6 +28,7 @@ import {
 } from '@material-ui/pickers';
 import Switch from '@material-ui/core/Switch';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
+import { addAvis } from "./actions";
 import './style.css';
 
 class App extends Component {
@@ -39,7 +41,11 @@ class App extends Component {
             numCommande: 0,
             isPublic: false,
             loading: false,
-            selectedDate: new Date()
+            selectedDate: new Date(),
+            avisErr: false,
+            titleErr: false,
+            rateErr: false,
+            err: []
         };
         const useStyles = makeStyles(theme => ({
             button: {
@@ -67,6 +73,25 @@ class App extends Component {
             selectedDate: this.state.selectedDate
         }
         
+        addAvis(data).then((res) => {
+            console.log(res);
+            if (res.data.success) {
+                
+            }else{
+                this.setState({ err: JSON.parse(res.data) })
+                if (this.state.err['avis']) {
+                    this.setState({ avisErr: !this.state.avisErr })
+                } if (this.state.err['rate']) {
+                    this.setState({ rateErr: !this.state.rateErr })
+                } if (this.state.err['title']) {
+                    this.setState({ titleErr: !this.state.titleErr })
+                }
+            }
+                this.setState({ loading: !this.state.loading })
+                $("#formulaire").css("filter", "blur(0px)");
+            console.log(this.state);
+            
+        })
     }
     render() {
         return (
@@ -74,9 +99,7 @@ class App extends Component {
                 {
                     this.state.loading
                     && 
-                    <div className="vBlock">
-                        <CircularProgress size={68} style={{color: '#2ba748',position: 'absolute',top: '41%',left: '38%',zIndex: 1,}} /> 
-                    </div>
+                    <Loader />
                 }
                 <form onSubmit={this.onSubmit} id="formulaire" autoComplete="off">
                     <h3>Donnez une note générale</h3>
@@ -91,9 +114,11 @@ class App extends Component {
 
                     <TextField
                         label="Donnez votre avis"
+                        helperText={this.state.err['avis']}
+                        error={this.state.avisErr}
                         name="avis"
                         onChange={this.onChange}
-                        placeholder="MultiLine with rows: 2 and rowsMax: 4"
+                        placeholder="Donnez votre avis"
                         multiline={true}
                         rows={6}
                         fullWidth
@@ -104,6 +129,8 @@ class App extends Component {
                     <TextField
                         id="outlined-textarea"
                         name="title"
+                        helperText={this.state.err['title']}
+                        error={this.state.titleErr}
                         onChange={this.onChange}
                         label="Titre de votre avis"
                         placeholder="Placeholder"
@@ -124,7 +151,7 @@ class App extends Component {
                             fullWidth
                             variant="outlined"
                             onChange={(DateChange) => {
-                                this.setState({ selectedDate: DateChange });
+                                this.setState({ selectedDate: moment(DateChange).format("YYYY-MM-DD HH:mm:ss") });
                             }}
                             KeyboardButtonProps={{
                                 'aria-label': 'change date',

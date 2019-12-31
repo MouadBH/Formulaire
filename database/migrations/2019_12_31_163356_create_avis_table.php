@@ -15,6 +15,12 @@ class CreateAvisTable extends Migration
     {
         Schema::create('avis', function (Blueprint $table) {
             $table->bigIncrements('id');
+            $table->string('title');
+            $table->text('avis');
+            $table->integer('rate');
+            $table->integer('commande');
+            $table->date('date');
+            $table->boolean('isPublic');
             $table->timestamps();
         });
     }
